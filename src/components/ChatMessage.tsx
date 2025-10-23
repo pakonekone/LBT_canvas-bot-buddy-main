@@ -1,12 +1,13 @@
 import { ChatMessage, Block } from "@/types/botBuilder";
 import { cn } from "@/lib/utils";
-import { Bot, User } from "lucide-react";
+import { Bot, User, ChevronDown, ChevronUp } from "lucide-react";
 import { HubSpotToggle } from "./forms/HubSpotToggle";
 import { QuestionForm } from "./forms/QuestionForm";
 import { MessageForm } from "./forms/MessageForm";
 import { ActionSummary } from "./ActionSummary";
 import { FlowCompleteChatCard } from "./FlowCompleteChatCard";
 import { SuggestionChips } from "./SuggestionChips";
+import { useState } from "react";
 
 interface ChatMessageComponentProps {
   message: ChatMessage;
@@ -54,6 +55,7 @@ export const ChatMessageComponent = ({
 }: ChatMessageComponentProps) => {
   const isSystem = message.role === "system";
   const isAssistant = message.role === "assistant";
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if this is the flow complete celebration
   const isFlowCompleteCelebration = message.content === "FLOW_COMPLETE_CELEBRATION";
@@ -77,11 +79,35 @@ export const ChatMessageComponent = ({
   }
 
   if (isSystem) {
+    const MAX_PREVIEW_LENGTH = 150;
+    const shouldCollapse = message.content.length > MAX_PREVIEW_LENGTH;
+    const displayContent = !isExpanded && shouldCollapse
+      ? message.content.substring(0, MAX_PREVIEW_LENGTH) + "..."
+      : message.content;
+
     return (
       <div className="p-3 rounded-xl bg-purple-100">
         <div className="text-sm text-gray-900 italic leading-relaxed">
-          {renderMessageWithLinks(message.content)}
+          {renderMessageWithLinks(displayContent)}
         </div>
+        {shouldCollapse && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-2 flex items-center gap-1 text-xs text-purple-700 hover:text-purple-900 font-medium transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3 w-3" />
+                Show less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3" />
+                Show more
+              </>
+            )}
+          </button>
+        )}
       </div>
     );
   }

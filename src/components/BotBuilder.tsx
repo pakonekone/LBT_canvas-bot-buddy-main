@@ -108,13 +108,14 @@ export const BotBuilder = () => {
   }, []);
 
   const createInitialBot = (useCase: string) => {
-    // Create initial blocks for Real Estate lead generation
+    // Create initial blocks for Real Estate lead generation with AI Agent
     const initialBlocks: Block[] = [
       {
         id: "start",
         type: "start",
-        position: { x: 0, y: 0 }, // Will be positioned by autoLayoutBlocks
+        position: { x: 0, y: 0 },
         status: "ready",
+        connections: [{ id: "c1", sourceBlockId: "start", targetBlockId: "msg1" }]
       },
       {
         id: "msg1",
@@ -124,6 +125,7 @@ export const BotBuilder = () => {
         config: {
           message: "Hello! Welcome to XYZ Real Estate. I'm here to help you find your perfect property. Let me gather some information to match you with the best options.",
         },
+        connections: [{ id: "c2", sourceBlockId: "msg1", targetBlockId: "q1" }]
       },
       {
         id: "q1",
@@ -134,6 +136,7 @@ export const BotBuilder = () => {
           question: "May I have your full name?",
           variableName: "name",
         },
+        connections: [{ id: "c3", sourceBlockId: "q1", targetBlockId: "q2" }]
       },
       {
         id: "q2",
@@ -144,6 +147,7 @@ export const BotBuilder = () => {
           question: "What is your email address?",
           variableName: "email",
         },
+        connections: [{ id: "c4", sourceBlockId: "q2", targetBlockId: "q3" }]
       },
       {
         id: "q3",
@@ -154,6 +158,7 @@ export const BotBuilder = () => {
           question: "What is your preferred location?",
           variableName: "location",
         },
+        connections: [{ id: "c5", sourceBlockId: "q3", targetBlockId: "q4" }]
       },
       {
         id: "q4",
@@ -164,6 +169,7 @@ export const BotBuilder = () => {
           question: "What is your budget range?",
           variableName: "budget",
         },
+        connections: [{ id: "c6", sourceBlockId: "q4", targetBlockId: "q5" }]
       },
       {
         id: "q5",
@@ -174,30 +180,67 @@ export const BotBuilder = () => {
           question: "What type of property are you looking for?",
           variableName: "property_type",
         },
+        connections: [{ id: "c7", sourceBlockId: "q5", targetBlockId: "agent1" }]
       },
+      // AI AGENT - Lead Qualifier
       {
-        id: "msg2",
-        type: "send-message",
+        id: "agent1",
+        type: "ai-agent",
         position: { x: 0, y: 0 },
         status: "ready",
         config: {
-          message: "Great! I'll validate your email and send your information to our team.",
+          agentName: "Lead Qualifier",
+          agentPrompt: "Analyze if this lead is qualified for our real estate services based on their budget and property preferences. Consider them qualified if they have a realistic budget (>$100k) and clear property needs.",
+          outputs: [
+            { id: "qualified", label: "Qualified" },
+            { id: "not_qualified", label: "Not Qualified" }
+          ]
         },
+        connections: [
+          {
+            id: "c8a",
+            sourceBlockId: "agent1",
+            targetBlockId: "hubspot1",
+            sourceOutputId: "qualified",
+            label: "Qualified"
+          },
+          {
+            id: "c8b",
+            sourceBlockId: "agent1",
+            targetBlockId: "msg_nurture",
+            sourceOutputId: "not_qualified",
+            label: "Not Qualified"
+          }
+        ]
       },
+      // QUALIFIED PATH
       {
         id: "hubspot1",
         type: "hubspot",
         position: { x: 0, y: 0 },
         status: "pending",
+        connections: [{ id: "c9", sourceBlockId: "hubspot1", targetBlockId: "msg_qualified" }]
       },
       {
-        id: "msg3",
+        id: "msg_qualified",
         type: "send-message",
         position: { x: 0, y: 0 },
         status: "ready",
         config: {
-          message: "Thank you! Your information has been sent to our team at XYZ Real Estate. One of our agents will contact you shortly with property options that match your criteria.",
+          message: "Perfect! Your information has been sent to our team at XYZ Real Estate. One of our agents will contact you within 24 hours with property options that match your criteria.",
         },
+        connections: [{ id: "c10", sourceBlockId: "msg_qualified", targetBlockId: "end" }]
+      },
+      // NOT QUALIFIED PATH
+      {
+        id: "msg_nurture",
+        type: "send-message",
+        position: { x: 0, y: 0 },
+        status: "ready",
+        config: {
+          message: "Thank you for your interest in XYZ Real Estate! While we don't have properties matching your current criteria, we'd love to stay in touch. Our team will add you to our newsletter for future opportunities that may fit your needs.",
+        },
+        connections: [{ id: "c11", sourceBlockId: "msg_nurture", targetBlockId: "end" }]
       },
       {
         id: "end",
@@ -207,7 +250,7 @@ export const BotBuilder = () => {
       },
     ];
 
-    setBlocks(autoLayoutBlocks(initialBlocks));
+    setBlocks(autoLayoutBlocksWithBranching(initialBlocks));
   };
 
   const autoLayoutBlocks = (blocksList: Block[]) => {
@@ -220,13 +263,13 @@ export const BotBuilder = () => {
     return blocksList.map((block, index) => {
       // Check if this is the end block (usually the last one)
       const isEndBlock = block.type === 'end';
-      
+
       if (isEndBlock) {
         // Place end block centered on its own row
         const previousBlocksRow = Math.floor((index - 1) / BLOCKS_PER_ROW);
         const endBlockRow = previousBlocksRow + 1;
         const centerX = START_X + (BLOCKS_PER_ROW - 1) * HORIZONTAL_SPACING / 2;
-        
+
         return {
           ...block,
           position: {
@@ -235,17 +278,104 @@ export const BotBuilder = () => {
           },
         };
       }
-      
+
       // Regular blocks: simple left-to-right, top-to-bottom flow
       const row = Math.floor(index / BLOCKS_PER_ROW);
       const col = index % BLOCKS_PER_ROW;
-      
+
       return {
         ...block,
         position: {
           x: START_X + col * HORIZONTAL_SPACING,
           y: START_Y + row * VERTICAL_SPACING,
         },
+      };
+    });
+  };
+
+  const autoLayoutBlocksWithBranching = (blocksList: Block[]): Block[] => {
+    const HORIZONTAL_SPACING = 400;
+    const VERTICAL_SPACING = 200;
+    const BLOCKS_PER_ROW = 3;
+    const START_X = 100;
+    const START_Y = 100;
+
+    // Build dependency graph from connections
+    const graph = new Map<string, string[]>();
+    blocksList.forEach(block => {
+      const targets = block.connections?.map(c => c.targetBlockId) || [];
+      graph.set(block.id, targets);
+    });
+
+    // Assign levels using topological sort
+    const levels = new Map<string, number>();
+    const visited = new Set<string>();
+
+    const assignLevel = (blockId: string, level: number = 0) => {
+      if (visited.has(blockId)) return;
+      visited.add(blockId);
+
+      const currentLevel = levels.get(blockId) || 0;
+      levels.set(blockId, Math.max(currentLevel, level));
+
+      const targets = graph.get(blockId) || [];
+      targets.forEach(targetId => {
+        assignLevel(targetId, level + 1);
+      });
+    };
+
+    assignLevel("start");
+
+    // Group blocks by level for branch detection
+    const levelGroups = new Map<number, string[]>();
+    levels.forEach((level, blockId) => {
+      if (!levelGroups.has(level)) {
+        levelGroups.set(level, []);
+      }
+      levelGroups.get(level)!.push(blockId);
+    });
+
+    // Position blocks using grid layout (3 per row) with branch adjustment
+    return blocksList.map((block, index) => {
+      const isEndBlock = block.type === 'end';
+
+      if (isEndBlock) {
+        // Place end block centered on its own row
+        const previousBlocksRow = Math.floor((index - 1) / BLOCKS_PER_ROW);
+        const endBlockRow = previousBlocksRow + 1;
+        const centerX = START_X + (BLOCKS_PER_ROW - 1) * HORIZONTAL_SPACING / 2;
+
+        return {
+          ...block,
+          position: {
+            x: centerX,
+            y: START_Y + endBlockRow * VERTICAL_SPACING + 100, // Extra spacing before end
+          },
+        };
+      }
+
+      // Regular grid layout (3 blocks per row)
+      const row = Math.floor(index / BLOCKS_PER_ROW);
+      const col = index % BLOCKS_PER_ROW;
+
+      let x = START_X + col * HORIZONTAL_SPACING;
+      let y = START_Y + row * VERTICAL_SPACING;
+
+      // Detect if this block is part of a branch
+      const level = levels.get(block.id) || 0;
+      const blocksInLevel = levelGroups.get(level) || [];
+      const isBranch = blocksInLevel.length > 1;
+
+      if (isBranch) {
+        // Adjust vertical position to spread branches
+        const indexInLevel = blocksInLevel.indexOf(block.id);
+        const branchOffset = indexInLevel * 100; // 100px offset between branches
+        y += branchOffset;
+      }
+
+      return {
+        ...block,
+        position: { x, y }
       };
     });
   };
@@ -398,6 +528,7 @@ export const BotBuilder = () => {
     "send-message": "Send Message",
     "ask-question": "Question",
     hubspot: "HubSpot",
+    "ai-agent": "AI Agent",
   };
 
   return (

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Handle, Position } from "@xyflow/react";
 import { Block } from "@/types/botBuilder";
 import {
   MoreVertical,
@@ -216,21 +217,45 @@ export const BlockNode = ({ block, onUpdateBlock, blocks = [], forceShowForm, on
 
             {/* Outputs */}
             <div className="p-2 space-y-1.5">
-              {outputs.map((output: { id: string; label: string }) => (
-                <div
-                  key={output.id}
-                  className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg px-3 py-2 flex items-center justify-between group hover:shadow-md transition-all"
-                >
-                  <span className="text-sm font-medium">{output.label}</span>
-                  <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                    <div className="text-primary-foreground">→</div>
+              {outputs.map((output: { id: string; label: string }, index: number) => (
+                <div key={output.id} className="relative">
+                  <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg px-3 py-2 flex items-center justify-between group hover:shadow-md transition-all">
+                    <span className="text-sm font-medium">{output.label}</span>
+                    <div className="w-6 h-6 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                      <div className="text-primary-foreground">→</div>
+                    </div>
                   </div>
+                  {/* Handle for this output */}
+                  <Handle
+                    type="source"
+                    position={Position.Right}
+                    id={output.id}
+                    style={{
+                      right: -8,
+                      top: '50%',
+                      background: '#ec4899',
+                      width: 12,
+                      height: 12,
+                      border: '2px solid white',
+                    }}
+                  />
                 </div>
               ))}
             </div>
 
-            {/* Connection dots */}
-            <div className="absolute -left-2 top-[52px] w-3 h-3 bg-primary rounded-full border-2 border-canvas-bg"></div>
+            {/* Input connection handle */}
+            <Handle
+              type="target"
+              position={Position.Left}
+              style={{
+                left: -8,
+                top: 52,
+                background: 'hsl(var(--primary))',
+                width: 12,
+                height: 12,
+                border: '2px solid white',
+              }}
+            />
           </div>
         </div>
 

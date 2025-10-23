@@ -47,27 +47,41 @@ export const Canvas = ({ blocks, setBlocks, onUpdateBlock, activeBlockFormId, on
     [blocks, onUpdateBlock, activeBlockFormId, onBlockFormClosed]
   );
 
-  // Create edges connecting sequential blocks
-  const edges: Edge[] = useMemo(() => 
-    blocks.slice(0, -1).map((block, index) => ({
-      id: `${block.id}-${blocks[index + 1].id}`,
-      source: block.id,
-      target: blocks[index + 1].id,
-      type: 'smoothstep',
-      animated: false,
-      style: { 
-        stroke: 'hsl(var(--arrow))',
-        strokeWidth: 3,
-      },
-      markerEnd: {
-        type: 'arrowclosed',
-        color: 'hsl(var(--arrow))',
-        width: 12,
-        height: 12,
-      },
-    })),
-    [blocks]
-  );
+  // Create edges from block connections
+  const edges: Edge[] = useMemo(() => {
+    const edgesList: Edge[] = [];
+
+    blocks.forEach(block => {
+      if (block.connections) {
+        block.connections.forEach(conn => {
+          // Conditional edges (from AI agents) are animated and pink
+          const isConditional = conn.sourceOutputId !== undefined;
+
+          edgesList.push({
+            id: conn.id,
+            source: conn.sourceBlockId,
+            target: conn.targetBlockId,
+            sourceHandle: conn.sourceOutputId, // For AI agent outputs
+            label: conn.label,
+            type: 'smoothstep',
+            animated: isConditional, // Animate conditional edges
+            style: {
+              stroke: isConditional ? '#ec4899' : 'hsl(var(--arrow))', // Pink for conditional, teal for normal
+              strokeWidth: isConditional ? 2 : 3,
+            },
+            markerEnd: {
+              type: 'arrowclosed',
+              color: isConditional ? '#ec4899' : 'hsl(var(--arrow))',
+              width: 12,
+              height: 12,
+            },
+          });
+        });
+      }
+    });
+
+    return edgesList;
+  }, [blocks]);
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {

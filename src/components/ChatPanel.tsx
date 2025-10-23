@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Send, X, Sparkles, Zap, BookOpen } from "lucide-react";
+import { Send, X, Sparkles, Wrench, MessageSquare } from "lucide-react";
 import { ChatMessageComponent } from "./ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
@@ -43,11 +43,20 @@ export const ChatPanel = ({
 }: ChatPanelProps) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<'action' | 'ask'>('action');
+  const [mode, setMode] = useState<'build' | 'ask'>('build');
   const [hiddenFormIds, setHiddenFormIds] = useState<string[]>([]);
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea based on content
+  const adjustTextareaHeight = () => {
+    const textarea = inputRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    }
+  };
 
   // Auto-scroll to bottom when messages update
   useEffect(() => {
@@ -71,6 +80,11 @@ export const ChatPanel = ({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isVisible]);
+
+  // Adjust textarea height when input changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [input]);
 
   const handleUpdateBlock = (id: string, updates: Partial<Block>) => {
     onUpdateBlock(id, updates);
@@ -103,6 +117,13 @@ export const ChatPanel = ({
 
     const userMessage = input.trim();
     setInput("");
+
+    // Reset textarea height after sending
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.style.height = '40px';
+      }
+    }, 0);
 
     onAddMessage({
       role: "user",
@@ -218,11 +239,11 @@ export const ChatPanel = ({
     );
   }
 
-  const placeholder = mode === 'action'
-    ? "Add an email block..."
+  const placeholder = mode === 'build'
+    ? "Build your flow..."
     : "Ask me anything...";
 
-  const hintText = mode === 'action'
+  const hintText = mode === 'build'
     ? "I can add blocks, connect flows, and configure integrations"
     : "I can explain features and help you learn";
 
@@ -231,7 +252,7 @@ export const ChatPanel = ({
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         {/* Branding Row */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-600" />
             <h2 className="text-base font-semibold text-gray-900">AI Copilot</h2>
@@ -242,32 +263,6 @@ export const ChatPanel = ({
             aria-label="Close panel"
           >
             <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="bg-gray-100 rounded-lg p-1 flex gap-1">
-          <button
-            onClick={() => setMode('action')}
-            className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              mode === 'action'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Zap className="h-3.5 w-3.5" />
-            Action
-          </button>
-          <button
-            onClick={() => setMode('ask')}
-            className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              mode === 'ask'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            Ask
           </button>
         </div>
       </div>
@@ -314,8 +309,8 @@ export const ChatPanel = ({
             }}
             placeholder={placeholder}
             disabled={isLoading}
-            className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2.5 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
-            rows={1}
+            className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2.5 border-gray-300 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-0 focus-visible:border-purple-500 resize-none overflow-y-auto"
+            style={{ height: '40px' }}
           />
           <Button
             onClick={handleSend}
@@ -325,9 +320,38 @@ export const ChatPanel = ({
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-gray-500 leading-relaxed">
+
+        <p className="text-xs text-gray-500 leading-relaxed mb-3">
           {hintText}
         </p>
+
+        {/* Mode Switcher - Below Hint Text */}
+        <div className="flex items-center justify-between">
+          <div className="bg-gray-100 rounded-lg p-1 flex gap-1">
+            <button
+              onClick={() => setMode('build')}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                mode === 'build'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Wrench className="h-3.5 w-3.5" />
+              Build
+            </button>
+            <button
+              onClick={() => setMode('ask')}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                mode === 'ask'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              Ask
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
