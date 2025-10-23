@@ -1,0 +1,334 @@
+import { useState, useEffect, useRef } from "react";
+import { Block, ChatMessage } from "@/types/botBuilder";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { ScrollArea } from "./ui/scroll-area";
+import { Send, X, Sparkles, Zap, BookOpen } from "lucide-react";
+import { ChatMessageComponent } from "./ChatMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "./ui/use-toast";
+import { generateContextualSuggestions } from "@/hooks/useSuggestions";
+
+interface ChatPanelProps {
+  messages: ChatMessage[];
+  onAddMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void;
+  onRemoveMessage: (predicate: (msg: ChatMessage) => boolean) => void;
+  onAddBlock: (
+    type: Block["type"],
+    config?: Record<string, any>,
+    position?: { afterBlockId?: string; beforeBlockId?: string },
+  ) => void;
+  onRemoveBlock: (blockId: string) => void;
+  onUpdateBlock: (id: string, updates: Partial<Block>) => void;
+  blocks: Block[];
+  onRequestBlockConfig: (blockId: string) => void;
+  onOpenPreview?: () => void;
+  onClose?: () => void;
+  isVisible?: boolean;
+}
+
+export const ChatPanel = ({
+  messages,
+  onAddMessage,
+  onRemoveMessage,
+  onAddBlock,
+  onRemoveBlock,
+  onUpdateBlock,
+  blocks,
+  onRequestBlockConfig,
+  onOpenPreview,
+  onClose,
+  isVisible = true,
+}: ChatPanelProps) => {
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'action' | 'ask'>('action');
+  const [hiddenFormIds, setHiddenFormIds] = useState<string[]>([]);
+  const { toast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (scrollRef.current && isVisible) {
+        const viewport = scrollRef.current.querySelector("[data-radix-scroll-area-viewport]");
+        if (viewport) {
+          viewport.scrollTop = viewport.scrollHeight;
+        }
+      }
+    };
+
+    scrollToBottom();
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages, isVisible]);
+
+  // Focus input when panel opens
+  useEffect(() => {
+    if (isVisible) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isVisible]);
+
+  const handleUpdateBlock = (id: string, updates: Partial<Block>) => {
+    onUpdateBlock(id, updates);
+    setHiddenFormIds((prev) => [...prev, id]);
+  };
+
+  const handleSuggestionClick = (prompt: string, messageId: string, chipId: string) => {
+    // 1. Rellenar el input con el prompt
+    setInput(prompt);
+
+    // 2. Hacer focus en el input
+    setTimeout(() => inputRef.current?.focus(), 100);
+
+    // 3. Remover el chip del mensaje (para que desaparezca)
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId && msg.suggestions) {
+          return {
+            ...msg,
+            suggestions: msg.suggestions.filter((s) => s.id !== chipId),
+          };
+        }
+        return msg;
+      })
+    );
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput("");
+
+    onAddMessage({
+      role: "user",
+      content: userMessage,
+    });
+
+    setIsLoading(true);
+
+    try {
+      const messagesToSend = messages
+        .filter((msg) => msg.role === "user" || msg.role === "assistant")
+        .slice(-10);
+
+      const { data, error } = await supabase.functions.invoke("chat-ai", {
+        body: {
+          messages: [
+            ...messagesToSend.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+            { role: "user", content: userMessage },
+          ],
+          blocks: blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            status: b.status,
+            config: b.config || {},
+          })),
+        },
+      });
+
+      if (error) throw error;
+
+      const aiResponse = data?.message || "I apologize, but I couldn't process that request.";
+      const toolCalls = data?.actions || data?.tool_calls || [];
+
+      console.log("AI Response:", aiResponse);
+      console.log("Tool Calls:", toolCalls);
+
+      // Determinar el tipo de la última acción
+      const lastActionType = toolCalls.length > 0 ? toolCalls[0].type : undefined;
+
+      // Generar suggestions contextuales
+      const suggestions = generateContextualSuggestions(blocks, lastActionType);
+
+      onAddMessage({
+        role: "assistant",
+        content: aiResponse,
+        suggestions: suggestions,
+      });
+
+      for (const call of toolCalls) {
+        switch (call.type) {
+          case "add_block":
+            onAddBlock(
+              call.blockType,
+              call.config,
+              call.position ? { afterBlockId: call.position.afterBlockId, beforeBlockId: call.position.beforeBlockId } : undefined
+            );
+            break;
+
+          case "update_block":
+            onUpdateBlock(call.blockId, call.config);
+            if (call.showForm) {
+              onRequestBlockConfig(call.blockId);
+            }
+            break;
+
+          case "show_form":
+            onRequestBlockConfig(call.blockId);
+            break;
+
+          case "remove_block":
+            if (call.blockIds && Array.isArray(call.blockIds)) {
+              call.blockIds.forEach((blockId: string) => {
+                onRemoveBlock(blockId);
+              });
+            }
+            break;
+        }
+      }
+    } catch (error) {
+      console.error("Error calling AI:", error);
+      onAddMessage({
+        role: "assistant",
+        content: "I'm having trouble connecting right now. Please try again.",
+      });
+      toast({
+        title: "Connection error",
+        description: "Failed to reach the AI assistant. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Widget button when panel is closed
+  if (!isVisible) {
+    return (
+      <button
+        onClick={onClose}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-50"
+        aria-label="Open AI Copilot"
+      >
+        <Sparkles className="h-6 w-6" />
+        {messages.filter(m => m.role === 'assistant').length > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+            {messages.filter(m => m.role === 'assistant').length}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  const placeholder = mode === 'action'
+    ? "Add an email block..."
+    : "Ask me anything...";
+
+  const hintText = mode === 'action'
+    ? "I can add blocks, connect flows, and configure integrations"
+    : "I can explain features and help you learn";
+
+  return (
+    <div className="w-[420px] border-l border-gray-200 bg-white flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200">
+        {/* Branding Row */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-600" />
+            <h2 className="text-base font-semibold text-gray-900">AI Copilot</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close panel"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="bg-gray-100 rounded-lg p-1 flex gap-1">
+          <button
+            onClick={() => setMode('action')}
+            className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              mode === 'action'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Zap className="h-3.5 w-3.5" />
+            Action
+          </button>
+          <button
+            onClick={() => setMode('ask')}
+            className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              mode === 'ask'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Ask
+          </button>
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <div className="space-y-1">
+          {messages
+            .filter((msg) => !msg.blockId || !hiddenFormIds.includes(msg.blockId))
+            .map((message) => (
+              <ChatMessageComponent
+                key={message.id}
+                message={message}
+                onUpdateBlock={handleUpdateBlock}
+                blocks={blocks}
+                onOpenPreview={onOpenPreview}
+                onSuggestionClick={handleSuggestionClick}
+              />
+            ))}
+
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex gap-2 p-3">
+              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input Area */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex gap-2 mb-2 items-end">
+          <Textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder={placeholder}
+            disabled={isLoading}
+            className="flex-1 min-h-[40px] max-h-[120px] px-3 py-2.5 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
+            rows={1}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
+            className="h-10 w-10 p-0 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 leading-relaxed">
+          {hintText}
+        </p>
+      </div>
+    </div>
+  );
+};
