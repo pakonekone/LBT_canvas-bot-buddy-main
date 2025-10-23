@@ -13,6 +13,7 @@ export const BotBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
   const [selectedUseCase, setSelectedUseCase] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [activeBlockFormId, setActiveBlockFormId] = useState<string | null>(null);
@@ -45,7 +46,8 @@ export const BotBuilder = () => {
     }
   }, [hasSeenFlowComplete, blocks]);
 
-  useEffect(() => {
+  const handleStart = () => {
+    setHasStarted(true);
     setSelectedUseCase(REAL_ESTATE_USE_CASE);
 
     // Add initial system message
@@ -71,7 +73,7 @@ export const BotBuilder = () => {
           timestamp: new Date(),
         },
       ]);
-      
+
       // Add onboarding message with suggestions
       setTimeout(() => {
         setMessages((prev) => [
@@ -105,7 +107,7 @@ export const BotBuilder = () => {
         ]);
       }, 500);
     }, 3000);
-  }, []);
+  };
 
   const createInitialBot = (useCase: string) => {
     // Create initial blocks for Real Estate lead generation with AI Agent
@@ -522,7 +524,7 @@ export const BotBuilder = () => {
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-background">
-      <LoadingModal isOpen={isLoading} />
+      <LoadingModal isOpen={isLoading} onStart={handleStart} isStarted={hasStarted} />
       <BotPreviewModal 
         isOpen={isPreviewOpen} 
         onClose={() => setIsPreviewOpen(false)} 
