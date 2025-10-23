@@ -11,7 +11,7 @@ export const SuggestionChips = ({ suggestions, onChipClick }: SuggestionChipsPro
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
+    <div className="flex flex-wrap gap-2 mt-3 mb-5">
       {suggestions.map((suggestion) => (
         <button
           key={suggestion.id}

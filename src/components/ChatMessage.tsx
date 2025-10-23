@@ -4,7 +4,6 @@ import { Bot, User, ChevronDown, ChevronUp } from "lucide-react";
 import { HubSpotToggle } from "./forms/HubSpotToggle";
 import { QuestionForm } from "./forms/QuestionForm";
 import { MessageForm } from "./forms/MessageForm";
-import { ActionSummary } from "./ActionSummary";
 import { FlowCompleteChatCard } from "./FlowCompleteChatCard";
 import { SuggestionChips } from "./SuggestionChips";
 import { useState } from "react";
@@ -59,11 +58,6 @@ export const ChatMessageComponent = ({
 
   // Check if this is the flow complete celebration
   const isFlowCompleteCelebration = message.content === "FLOW_COMPLETE_CELEBRATION";
-
-  // Check if this is a structured summary message
-  const isSummary = isAssistant &&
-    message.content.includes('**What I understood:**') &&
-    message.content.includes('**Actions taken:**');
 
   // Forms are now shown on canvas only, not in chat
 
@@ -123,34 +117,28 @@ export const ChatMessageComponent = ({
         "max-w-full",
         isAssistant ? "max-w-full" : "max-w-[80%]"
       )}>
-        {isSummary ? (
-          <div className="text-sm text-gray-900 leading-relaxed">
-            <ActionSummary content={message.content} />
-          </div>
-        ) : (
-          <div>
-            <div
-              className={cn(
-                "rounded-xl p-2 text-sm leading-relaxed",
-                isAssistant
-                  ? "text-gray-900"
-                  : "bg-purple-100 text-gray-900 ml-auto"
-              )}
-            >
-              {renderMessageWithLinks(message.content, isAssistant)}
-            </div>
-
-            {/* Render suggestion chips for assistant messages */}
-            {isAssistant && message.suggestions && message.suggestions.length > 0 && (
-              <SuggestionChips
-                suggestions={message.suggestions}
-                onChipClick={(prompt, chipId) =>
-                  onSuggestionClick?.(prompt, message.id, chipId)
-                }
-              />
+        <div>
+          <div
+            className={cn(
+              "rounded-xl p-2 text-sm leading-relaxed",
+              isAssistant
+                ? "text-gray-900"
+                : "bg-purple-100 text-gray-900 ml-auto"
             )}
+          >
+            {renderMessageWithLinks(message.content, isAssistant)}
           </div>
-        )}
+
+          {/* Render suggestion chips for assistant messages */}
+          {isAssistant && message.suggestions && message.suggestions.length > 0 && (
+            <SuggestionChips
+              suggestions={message.suggestions}
+              onChipClick={(prompt, chipId) =>
+                onSuggestionClick?.(prompt, message.id, chipId)
+              }
+            />
+          )}
+        </div>
       </div>
     </div>
   );

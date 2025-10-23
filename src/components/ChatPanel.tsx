@@ -253,9 +253,9 @@ export const ChatPanel = ({
       <div className="p-4 border-b border-gray-200">
         {/* Branding Row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
-            <h2 className="text-base font-semibold text-gray-900">AI Copilot</h2>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-lg font-bold text-gray-900">Landbot AI copilot</h2>
+            <p className="text-sm text-gray-500">Build your bot with natural language</p>
           </div>
           <button
             onClick={onClose}
@@ -272,6 +272,7 @@ export const ChatPanel = ({
         <div className="space-y-1">
           {messages
             .filter((msg) => !msg.blockId || !hiddenFormIds.includes(msg.blockId))
+            .filter((msg) => !msg.content.includes('**What I understood:**'))
             .map((message) => (
               <ChatMessageComponent
                 key={message.id}

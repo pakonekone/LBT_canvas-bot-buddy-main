@@ -7,7 +7,7 @@ import { BotPreviewModal } from "./BotPreviewModal";
 import { Block, ChatMessage } from "@/types/botBuilder";
 import { useToast } from "@/hooks/use-toast";
 
-const REAL_ESTATE_USE_CASE = "I want a lead generation AI Agent for my real estate company (XYZ Real Estate). It should capture essential details about the property clients are looking for, such as name, email, location, budget and property type. Once all information is collected, the AI Agent should send the data to HubSpot (to create or update a contact with all captured fields). The AI Agent should use a polite, professional tone, validate email format, and ask clarifying questions if the budget or property type is unclear. It should aim to efficiently gather all relevant lead details to streamline the follow-up process for the sales team. The chatbot should operate entirely in English.";
+const REAL_ESTATE_USE_CASE = "I want a lead generation AI Agent for my real estate company (XYZ Real Estate). It should capture essential details about the property clients are looking for, such as name, email, budget and property type. Once all information is collected, the AI Agent should send the data to HubSpot (to create or update a contact with all captured fields). The AI Agent should use a polite, professional tone, validate email format, and ask clarifying questions if the budget or property type is unclear. It should aim to efficiently gather all relevant lead details to streamline the follow-up process for the sales team. The chatbot should operate entirely in English.";
 
 export const BotBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -79,7 +79,7 @@ export const BotBuilder = () => {
           {
             id: (Date.now() + 1).toString(),
             role: "assistant",
-            content: "I'm your onboarding agent, here to help you build your real estate bot. I notice you have pending blocks that need configuration. Would you like to configure them, or add other blocks like additional Ask Question blocks, Send Message blocks, or HubSpot integration?",
+            content: "I notice you have pending blocks that need configuration. Would you like to configure them, or add other blocks like additional Ask Question blocks, Send Message blocks, or HubSpot integration?",
             timestamp: new Date(),
             suggestions: [
               {
@@ -155,8 +155,8 @@ export const BotBuilder = () => {
         position: { x: 0, y: 0 },
         status: "ready",
         config: {
-          question: "What is your preferred location?",
-          variableName: "location",
+          question: "What is your budget range?",
+          variableName: "budget",
         },
         connections: [{ id: "c5", sourceBlockId: "q3", targetBlockId: "q4" }]
       },
@@ -166,21 +166,10 @@ export const BotBuilder = () => {
         position: { x: 0, y: 0 },
         status: "ready",
         config: {
-          question: "What is your budget range?",
-          variableName: "budget",
-        },
-        connections: [{ id: "c6", sourceBlockId: "q4", targetBlockId: "q5" }]
-      },
-      {
-        id: "q5",
-        type: "ask-question",
-        position: { x: 0, y: 0 },
-        status: "ready",
-        config: {
           question: "What type of property are you looking for?",
           variableName: "property_type",
         },
-        connections: [{ id: "c7", sourceBlockId: "q5", targetBlockId: "agent1" }]
+        connections: [{ id: "c6", sourceBlockId: "q4", targetBlockId: "agent1" }]
       },
       // AI AGENT - Lead Qualifier
       {

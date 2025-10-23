@@ -1,6 +1,3 @@
-import { CheckCircle2, Lightbulb, GitBranch } from "lucide-react";
-import { Card } from "./ui/card";
-
 interface ActionSummaryProps {
   content: string;
 }
@@ -32,63 +29,36 @@ export const ActionSummary = ({ content }: ActionSummaryProps) => {
   }
 
   return (
-    <Card className="border-l-4 border-l-primary bg-muted/50 p-4 space-y-3">
+    <div className="space-y-1">
       {/* Main message */}
       {sections.main && (
-        <div className="text-sm font-medium text-foreground">
+        <div className="text-sm text-gray-900">
           {sections.main}
         </div>
       )}
 
       {/* What I understood */}
       {sections.understood && (
-        <div className="flex gap-2 items-start">
-          <Lightbulb className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">
-              What I understood
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {sections.understood}
-            </div>
-          </div>
+        <div className="text-[11px] text-gray-400 italic">
+          {sections.understood}
         </div>
       )}
 
       {/* Actions taken */}
       {sections.actions.length > 0 && (
-        <div className="flex gap-2 items-start">
-          <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <div className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">
-              Actions taken
-            </div>
-            <ul className="space-y-1">
-              {sections.actions.map((action, idx) => (
-                <li key={idx} className="text-xs text-muted-foreground flex gap-2">
-                  <span className="text-green-500">•</span>
-                  <span>{action}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="text-[11px] text-gray-400 space-y-0">
+          {sections.actions.map((action, idx) => (
+            <div key={idx}>• {action}</div>
+          ))}
         </div>
       )}
 
       {/* Current bot flow */}
       {sections.flow && (
-        <div className="flex gap-2 items-start">
-          <GitBranch className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">
-              Current bot flow
-            </div>
-            <div className="text-xs font-mono text-muted-foreground bg-background/50 p-2 rounded">
-              {sections.flow}
-            </div>
-          </div>
+        <div className="text-[11px] font-mono text-gray-400">
+          {sections.flow}
         </div>
       )}
-    </Card>
+    </div>
   );
 };
