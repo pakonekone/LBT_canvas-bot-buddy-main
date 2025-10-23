@@ -372,7 +372,7 @@ export const BotBuilder = () => {
   };
 
   const addBlock = (
-    type: Block["type"], 
+    type: Block["type"],
     suggestedConfig?: Record<string, any>,
     position?: { afterBlockId?: string; beforeBlockId?: string }
   ) => {
@@ -386,12 +386,14 @@ export const BotBuilder = () => {
       return;
     }
 
+    const newBlockId = `block-${Date.now()}`;
     const newBlock: Block = {
-      id: `block-${Date.now()}`,
+      id: newBlockId,
       type,
       position: { x: 400, y: 300 },
       status: suggestedConfig ? "ready" : "pending",
       config: suggestedConfig,
+      connections: [], // Initialize with empty connections, will be set below
     };
 
     const newBlocks = [...blocks];
@@ -412,12 +414,62 @@ export const BotBuilder = () => {
       }
     }
 
+    // Insert the new block
     newBlocks.splice(insertIndex, 0, newBlock);
+
+    // Update connections to integrate the new block into the flow
+    // 1. Find the block before the insertion point (previousBlock)
+    // 2. Find the block after the insertion point (nextBlock)
+    // 3. Update previousBlock to connect to newBlock
+    // 4. Set newBlock to connect to nextBlock
+
+    const previousBlockIndex = insertIndex - 1;
+    const nextBlockIndex = insertIndex + 1;
+
+    if (previousBlockIndex >= 0) {
+      const previousBlock = newBlocks[previousBlockIndex];
+      // Update previous block's connections to point to new block
+      if (previousBlock.connections && previousBlock.connections.length > 0) {
+        // Find connection that was pointing to nextBlock and update it
+        const oldTargetId = newBlocks[nextBlockIndex]?.id;
+        previousBlock.connections = previousBlock.connections.map(conn => {
+          if (conn.targetBlockId === oldTargetId) {
+            return { ...conn, targetBlockId: newBlockId };
+          }
+          return conn;
+        });
+        // If no connections existed to nextBlock, add connection to newBlock
+        if (!previousBlock.connections.some(c => c.targetBlockId === newBlockId)) {
+          previousBlock.connections.push({
+            id: `c-${Date.now()}-prev`,
+            sourceBlockId: previousBlock.id,
+            targetBlockId: newBlockId
+          });
+        }
+      } else {
+        // Previous block has no connections, create one to new block
+        previousBlock.connections = [{
+          id: `c-${Date.now()}-prev`,
+          sourceBlockId: previousBlock.id,
+          targetBlockId: newBlockId
+        }];
+      }
+    }
+
+    if (nextBlockIndex < newBlocks.length) {
+      const nextBlock = newBlocks[nextBlockIndex];
+      // Set new block to connect to next block
+      newBlock.connections = [{
+        id: `c-${Date.now()}-next`,
+        sourceBlockId: newBlockId,
+        targetBlockId: nextBlock.id
+      }];
+    }
 
     // Auto-layout all blocks
     const layoutedBlocks = autoLayoutBlocks(newBlocks);
     setBlocks(layoutedBlocks);
-    
+
     const configStatus = suggestedConfig ? "with suggested values" : "ready for configuration";
     toast({
       title: "Block added",

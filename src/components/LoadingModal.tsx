@@ -36,11 +36,11 @@ export const LoadingModal = ({ isOpen, onStart, isStarted = false }: LoadingModa
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             {!isStarted ? (
-              <div className="h-16 w-16 rounded-full bg-gradient-primary flex items-center justify-center">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
             ) : (
-              <div className="h-16 w-16 rounded-full bg-gradient-primary flex items-center justify-center animate-pulse">
+              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center animate-pulse">
                 <Loader2 className="h-8 w-8 text-white animate-spin" />
               </div>
             )}
@@ -65,9 +65,9 @@ export const LoadingModal = ({ isOpen, onStart, isStarted = false }: LoadingModa
               Start Building
             </Button>
           ) : (
-            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
-                className="h-full bg-gradient-primary transition-all duration-300 ease-in-out"
+                className="h-full bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300 ease-in-out"
                 style={{
                   width: `${((messageIndex + 1) / LOADING_MESSAGES.length) * 100}%`,
                 }}
