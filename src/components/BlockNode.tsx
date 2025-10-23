@@ -157,7 +157,17 @@ export const BlockNode = ({ block, onUpdateBlock, blocks = [], forceShowForm, on
     return (
       <div className="relative">
         <div className="bg-card px-4 py-3 shadow-md border border-border flex items-center gap-3 w-56">
-          <div className="text-2xl">{icon}</div>
+          <div className="text-2xl">
+            {block.type === "hubspot" ? (
+              <img
+                src="/hubspot_logo.jpg"
+                alt="HubSpot"
+                className="w-8 h-8 object-contain rounded"
+              />
+            ) : (
+              icon
+            )}
+          </div>
           <div className="flex-1">
             <div className="font-semibold text-sm">{label}</div>
             <div className="text-xs text-muted-foreground">{description}</div>
@@ -197,7 +207,17 @@ export const BlockNode = ({ block, onUpdateBlock, blocks = [], forceShowForm, on
 
             {/* Header */}
             <div className="p-3 bg-muted/30 flex items-center gap-2 border-b border-border">
-              <div className="text-2xl">{icon}</div>
+              <div className="text-2xl">
+                {block.type === "hubspot" ? (
+                  <img
+                    src="/hubspot_logo.jpg"
+                    alt="HubSpot"
+                    className="w-8 h-8 object-contain rounded"
+                  />
+                ) : (
+                  icon
+                )}
+              </div>
               <div className="flex-1">
                 <div className="font-semibold text-sm">{label}</div>
                 <div className="text-xs text-muted-foreground">
@@ -333,8 +353,18 @@ export const BlockNode = ({ block, onUpdateBlock, blocks = [], forceShowForm, on
           
           <div className="p-4 flex items-start gap-3">
           {/* Icon/Emoji */}
-          <div className="text-2xl flex-shrink-0">{icon}</div>
-          
+          <div className="text-2xl flex-shrink-0">
+            {block.type === "hubspot" ? (
+              <img
+                src="/hubspot_logo.jpg"
+                alt="HubSpot"
+                className="w-8 h-8 object-contain rounded"
+              />
+            ) : (
+              icon
+            )}
+          </div>
+
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
