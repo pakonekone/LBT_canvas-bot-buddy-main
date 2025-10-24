@@ -221,21 +221,37 @@ export const ChatPanel = ({
     }
   };
 
-  // Widget button when panel is closed
+  // Widget when panel is closed
   if (!isVisible) {
     return (
-      <button
-        onClick={onClose}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-50"
-        aria-label="Open AI Copilot"
-      >
-        <Sparkles className="h-6 w-6" />
-        {messages.filter(m => m.role === 'assistant').length > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-            {messages.filter(m => m.role === 'assistant').length}
-          </span>
-        )}
-      </button>
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[400px] max-w-[calc(100vw-40px)] z-50">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (input.trim()) {
+              onClose?.(); // Open panel
+              setTimeout(() => handleSend(), 100);
+            }
+          }}
+          className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-2 rounded-full shadow-lg border border-gray-200"
+        >
+          <MessageSquare className="h-5 w-5 text-gray-400 ml-2" />
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask about your bot..."
+            className="flex-1 px-2 py-2.5 text-sm outline-none bg-transparent placeholder:text-gray-500"
+          />
+          <button
+            type="submit"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-full transition-all hover:scale-105 flex items-center justify-center min-w-[44px]"
+            aria-label="Send question"
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        </form>
+      </div>
     );
   }
 

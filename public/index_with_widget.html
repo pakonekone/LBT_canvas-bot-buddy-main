@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bella Vista Restaurant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            color: #e74c3c;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #e74c3c;
+        }
+
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23c0392b" width="1200" height="600"/></svg>');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content h2 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #c0392b;
+        }
+
+        .menu,
+        .about,
+        .contact {
+            padding: 80px 0;
+        }
+
+        .menu {
+            background-color: #f8f9fa;
+        }
+
+        .menu h2,
+        .about h2,
+        .contact h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item h3 {
+            color: #e74c3c;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .dish {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dish:last-child {
+            border-bottom: none;
+        }
+
+        .dish-name {
+            font-weight: bold;
+        }
+
+        .price {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .about {
+            text-align: center;
+        }
+
+        .about p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #666;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .info-item p {
+            color: #666;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .ai-tip {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            border-top: 1px solid #ecf0f1;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .ai-tip p {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-tip .examples {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .ai-tip code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .floating-widget {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            z-index: 99999;
+        }
+
+        /* Hide our widget when chatbot is active */
+        .floating-widget.chatbot-active {
+            display: none;
+        }
+
+        /* Accessibility and AI-readable content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        .widget-title {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .widget-subtitle {
+            display: block;
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        /* Position Landbot popup away from our widget area only when closed */
+        .LandbotPopup:not(.is-open) {
+            bottom: 80px !important;
+        }
+
+        /* Allow full screen when opened */
+        .LandbotPopup.is-open {
+            bottom: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .widget-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 25px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-icon {
+            margin-left: 8px;
+            color: #95a5a6;
+            font-size: 16px;
+        }
+
+        .widget-input {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            background: transparent;
+        }
+
+        .widget-input::placeholder {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .widget-submit {
+            padding: 12px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .widget-submit:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .widget-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            transition: all 0.3s ease;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .widget-toggle:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .floating-widget.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+
+            .hero-content p {
+                font-size: 1.2rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+
+            .floating-widget {
+                width: calc(100% - 20px);
+                max-width: 320px;
+                bottom: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .hero-content h2 {
+                font-size: 2rem;
+            }
+
+            .menu h2,
+            .about h2,
+            .contact h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1>Bella Vista</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#menu">Menu</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2>Welcome to Bella Vista</h2>
+            <p>Experience authentic Italian cuisine in the heart of the city</p>
+            <button class="cta-button">Reserve a Table</button>
+        </div>
+    </section>
+
+    <section id="menu" class="menu">
+        <div class="container">
+            <h2>Our Menu</h2>
+            <div class="menu-grid">
+                <div class="menu-item">
+                    <h3>Appetizers</h3>
+                    <div class="dish">
+                        <span class="dish-name">Bruschetta</span>
+                        <span class="price">$8</span>
+                    </div>
+                    <div class="dish">
+                        <span class="dish-name">Antipasto Platter</span>
+                        <span class="price">$15</span>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Main Courses</h3>
+                    <div class="dish">
+                        <span class="dish-name">Spaghetti Carbonara</span>
+                        <span class="price">$18</span>
+                    </div>
+                    <div class="dish">
+                        <span class="dish-name">Chicken Parmigiana</span>
+                        <span class="price">$22</span>
+                    </div>
+                    <div class="dish">
+                        <span class="dish-name">Margherita Pizza</span>
+                        <span class="price">$16</span>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <h3>Desserts</h3>
+                    <div class="dish">
+                        <span class="dish-name">Tiramisu</span>
+                        <span class="price">$7</span>
+                    </div>
+                    <div class="dish">
+                        <span class="dish-name">Gelato</span>
+                        <span class="price">$5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Us</h2>
+            <p>Bella Vista has been serving authentic Italian cuisine for over 25 years. Our family recipes and fresh
+                ingredients create an unforgettable dining experience in a warm, welcoming atmosphere.</p>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+                <div class="info-item">
+                    <h3>Address</h3>
+                    <p>123 Main Street<br>City, State 12345</p>
+                </div>
+                <div class="info-item">
+                    <h3>Phone</h3>
+                    <p>(555) 123-4567</p>
+                </div>
+                <div class="info-item">
+                    <h3>Hours</h3>
+                    <p>Mon-Thu: 11am-9pm<br>Fri-Sat: 11am-10pm<br>Sun: 12pm-8pm</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+
+            <p>&copy; 2024 Bella Vista Restaurant. All rights reserved.</p>
+
+        </div>
+    </footer>
+
+
+    <!-- Floating Chat Widget with AI-Discoverable Metadata -->
+    <div class="floating-widget" id="chatWidget" role="complementary"
+        aria-label="Restaurant Customer Support Chat - Ask about reservations, menu, hours, accessibility"
+        data-service="restaurant-support"
+        data-capabilities="reservations,menu-questions,hours,accessibility,dietary-restrictions,events"
+        data-ai-description="Interactive chat for restaurant questions and reservation assistance">
+
+        <!-- Hidden but crawlable content for AI agents -->
+        <div class="sr-only ai-readable" aria-hidden="false">
+            This chat can answer questions about:
+            - Reservations and booking
+            - Menu items and dietary restrictions
+            - Restaurant hours and location
+            - Accessibility accommodations
+            - Special events and private dining
+            - General restaurant policies
+        </div>
+
+
+
+        <form class="widget-form" id="widgetForm" data-purpose="restaurant-inquiry" data-form-type="chat">
+
+            <label for="widgetInput" class="visually-hidden">
+                Chat with us about reservations, menu items, hours, and restaurant policies
+            </label>
+
+            <span class="search-icon" aria-hidden="true">💬</span>
+
+            <input type="text" class="widget-input" id="widgetInput"
+                placeholder="Ask about reservations, menu, hours..."
+                aria-label="Type your question about reservations, menu items, or restaurant information"
+                data-input-purpose="restaurant-questions"
+                data-accepts="reservation-inquiries,menu-questions,hours-info,general-restaurant-info"
+                data-usage="Type question + press Enter"
+                title="Click here to ask about reservations, menu, hours, or any restaurant questions" required>
+
+            <button type="submit" class="widget-submit" aria-label="Send question"
+                title="Send your question about restaurant services">
+                ➤
+            </button>
+        </form>
+
+        <!-- Semantic hints for AI -->
+        <meta itemprop="interactionType" content="restaurant-customer-support-chat">
+        <meta itemprop="availableService" content="reservation-assistance">
+    </div>
+
+    <!-- Additional DOM marker for AI agents -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "potentialAction": {
+            "@type": "InteractAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "#chatWidget",
+                "actionPlatform": "chat-interface"
+            },
+            "description": "Ask questions about restaurant reservations, menu items, hours, and dining policies"
+        }
+    }
+    </script>
+
+    <!-- Hidden FAQ pointer -->
+    <div style="position: absolute; left: -9999px;" aria-hidden="false">
+        Questions about restaurant reservations, menu items, dietary restrictions, or hours?
+        Use the chat widget to ask our staff directly.
+        The chat interface can provide information about dining policies, special events, and accessibility.
+    </div>
+
+    <script>
+        // Global observer to monitor Landbot state
+        function startGlobalLandbotObserver() {
+            setInterval(function () {
+                const widget = document.getElementById('chatWidget');
+                const landbotPopup = document.querySelector('.LandbotPopup');
+
+                if (widget && landbotPopup) {
+                    const isLandbotOpen = landbotPopup.classList.contains('is-open');
+                    const isWidgetHidden = widget.classList.contains('chatbot-active');
+
+                    // If Landbot is closed but widget is still hidden, show it
+                    if (!isLandbotOpen && isWidgetHidden) {
+                        widget.classList.remove('chatbot-active');
+                    }
+                }
+            }, 1000); // Check every second
+        }
+
+        // Floating widget functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const widget = document.getElementById('chatWidget');
+            const form = document.getElementById('widgetForm');
+            const input = document.getElementById('widgetInput');
+
+            // Start the global observer
+            startGlobalLandbotObserver();
+
+            // Load chatbot immediately when page loads
+            initLandbot();
+
+            // Handle form submission
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const query = input.value.trim();
+                if (query) {
+                    // Send query to chatbot
+                    sendQueryToChatbot(query);
+                    // Clear input
+                    input.value = '';
+                }
+            });
+
+            // Handle button click by triggering form submission
+            const submitButton = document.querySelector('.widget-submit');
+
+            submitButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Manually trigger form submission
+                const submitEvent = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                form.dispatchEvent(submitEvent);
+            });
+
+            // Add touch events for mobile
+            submitButton.addEventListener('touchend', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Manually trigger form submission
+                const submitEvent = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                form.dispatchEvent(submitEvent);
+            });
+        });
+
+        // Function to send query to chatbot
+        function sendQueryToChatbot(query) {
+            // Initialize chatbot if not already done
+            if (!myLandbot) {
+                initLandbot();
+            }
+
+            // Wait for bot to be ready and send message
+            waitForLandbot(function () {
+                myLandbot.sendMessage({
+                    type: 'text',
+                    message: query
+                });
+                setTimeout(function () {
+                    // Hide our input widget when chatbot opens
+                    const widget = document.getElementById('chatWidget');
+                    widget.classList.add('chatbot-active');
+
+                    myLandbot.open();
+
+                    // Listen for chatbot close events using correct API
+                    myLandbot.core.events.on('widget_close', function () {
+                        widget.classList.remove('chatbot-active');
+                    });
+
+                    // Backup: Monitor for Landbot closure via DOM changes
+                    const observer = new MutationObserver(function (mutations) {
+                        const landbotPopup = document.querySelector('.LandbotPopup');
+                        if (landbotPopup && !landbotPopup.classList.contains('is-open')) {
+                            widget.classList.remove('chatbot-active');
+                            observer.disconnect();
+                        }
+                    });
+
+                    // Start observing for class changes
+                    const landbotPopup = document.querySelector('.LandbotPopup');
+                    if (landbotPopup) {
+                        observer.observe(landbotPopup, { attributes: true, attributeFilter: ['class'] });
+                    }
+                }, 500);
+            });
+        }
+
+
+        var myLandbot;
+
+        function waitForLandbot(callback, retries = 0) {
+            if (typeof Landbot !== 'undefined' && myLandbot && myLandbot.open) {
+                callback();
+            } else if (retries < 50) { // Max 5 seconds
+                setTimeout(function () {
+                    waitForLandbot(callback, retries + 1);
+                }, 100);
+            }
+        }
+
+        function initLandbot() {
+            if (!myLandbot) {
+                var s = document.createElement('script');
+                s.type = "module"
+                s.async = true;
+                s.addEventListener('load', function () {
+                    // Wait for Landbot to be available in global scope
+                    setTimeout(function () {
+                        if (typeof Landbot !== 'undefined') {
+                            myLandbot = new Landbot.Popup({
+                                configUrl: 'https://storage.googleapis.com/landbot.pro/v3/H-3106049-FYVQ41HFW8A1E1F9/index.json',
+                            });
+                        }
+                    }, 500);
+                });
+                s.src = 'https://cdn.landbot.io/landbot-3/landbot-3.0.0.mjs';
+                var x = document.getElementsByTagName('script')[0];
+                x.parentNode.insertBefore(s, x);
+            }
+        }
+    </script>
+</body>
+
+</html>
