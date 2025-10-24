@@ -224,7 +224,7 @@ export const ChatPanel = ({
   // Widget when panel is closed
   if (!isVisible) {
     return (
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[400px] max-w-[calc(100vw-40px)] z-50">
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[320px] max-w-[calc(100vw-40px)] z-50">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -233,14 +233,21 @@ export const ChatPanel = ({
               setTimeout(() => handleSend(), 100);
             }
           }}
-          className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-2 rounded-full shadow-lg border border-gray-200"
+          className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-3 py-2 rounded-full shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer"
         >
-          <MessageSquare className="h-5 w-5 text-gray-400 ml-2" />
+          <button
+            type="button"
+            onClick={() => onClose?.()}
+            className="text-purple-600 hover:text-purple-700 transition-colors ml-2"
+            aria-label="Open copilot"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </button>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your bot..."
+            placeholder="Ask Copilot"
             className="flex-1 px-2 py-2.5 text-sm outline-none bg-transparent placeholder:text-gray-500"
           />
           <button

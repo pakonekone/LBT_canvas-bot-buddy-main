@@ -7,7 +7,7 @@ import { BotPreviewModal } from "./BotPreviewModal";
 import { Block, ChatMessage } from "@/types/botBuilder";
 import { useToast } from "@/hooks/use-toast";
 
-const REAL_ESTATE_USE_CASE = "I want a lead generation AI Agent for my real estate company (XYZ Real Estate). It should capture essential details about the property clients are looking for, such as name, email, budget and property type. Once all information is collected, the AI Agent should send the data to HubSpot (to create or update a contact with all captured fields). The AI Agent should use a polite, professional tone, validate email format, and ask clarifying questions if the budget or property type is unclear. It should aim to efficiently gather all relevant lead details to streamline the follow-up process for the sales team. The chatbot should operate entirely in English.";
+const REAL_ESTATE_USE_CASE = "I want a lead generation AI Agent for my real estate company (XYZ Real Estate). It should capture essential details about the property clients are looking for, such as name, email, budget and property type. Once all information is collected, the AI Agent should analyze and score the lead to determine if they are qualified or not based on their responses. Qualified leads should be sent to HubSpot (to create or update a contact with all captured fields), while non-qualified leads should receive a different follow-up message. The chatbot should operate entirely in English.";
 
 export const BotBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([]);
